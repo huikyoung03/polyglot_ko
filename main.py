@@ -3,13 +3,12 @@ from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
-
 app = FastAPI()
 
 print("🔄 모델 로딩 중...")
-tokenizer = AutoTokenizer.from_pretrained("beomi/KoAlpaca-Polyglot-3.5B", trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained("junelee/ko-llama-1.3b", trust_remote_code=True)
 model = AutoModelForCausalLM.from_pretrained(
-    "beomi/KoAlpaca-Polyglot-3.5B", trust_remote_code=True, torch_dtype=torch.float16
+    "junelee/ko-llama-1.3b", trust_remote_code=True, torch_dtype=torch.float16
 )
 model.eval()
 print("✅ 모델 로딩 완료")
