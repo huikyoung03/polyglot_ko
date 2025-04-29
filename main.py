@@ -6,26 +6,33 @@ import torch
 app = FastAPI()
 
 print("🔄 모델 로딩 중...")
-tokenizer = AutoTokenizer.from_pretrained("EleutherAI/polyglot-ko-5.8b", trust_remote_code=True)
-model = AutoModelForCausalLM.from_pretrained("EleutherAI/polyglot-ko-5.8b", trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained("beomi/KoAlpaca-Polyglot-3.5B", trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained(
+    "beomi/KoAlpaca-Polyglot-3.5B", trust_remote_code=True, torch_dtype=torch.float16
+)
 model.eval()
 print("✅ 모델 로딩 완료")
 
-class TextRequest(BaseModel):
+class TransformRequest(BaseModel):
+    prompt_template: str
     text: str
 
 @app.post("/transform/")
-async def transform(request: TextRequest):
-    prompt = f"다음 문장을 더 자연스럽게 바꿔줘:\n{request.text}\n\n변환된 문장:"
-
+async def transform(req: TransformRequest):
+    prompt = req.prompt_template.format(text=req.text)
     inputs = tokenizer(prompt, return_tensors="pt")
+
     with torch.no_grad():
         outputs = model.generate(
             inputs["input_ids"],
-            max_length=200,
-            num_beams=5,
-            no_repeat_ngram_size=2,
+            max_length=256,
+            num_beams=4,
             early_stopping=True
         )
+
     result = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    return {"original": request.text, "transformed": result.split("변환된 문장:")[-1].strip()}
+    return {
+        "original": req.text,
+        "prompt_used": prompt,
+        "transformed": result.split("### Assistant:")[-1].strip()
+    }
