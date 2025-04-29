@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
+
 app = FastAPI()
 
 print("🔄 모델 로딩 중...")
